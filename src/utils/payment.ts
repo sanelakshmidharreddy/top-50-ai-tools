@@ -1,5 +1,6 @@
+
 import { db, auth } from "../firebase";
-import { collection, addDoc, serverTimestamp, getDocs } from "firebase/firestore";
+import { collection, getDocs } from "firebase/firestore";
 import { isMobile } from "./isMobile";
 
 declare global {
@@ -20,7 +21,7 @@ export const getTotalPurchases = async () => {
 
 export const startPayment = async (userId?: string) => {
   try {
-    // 1️⃣ Create order from backend
+    // ✅ 1. Create order
     const res = await fetch("/api/create-order", {
       method: "POST",
       headers: {
@@ -44,13 +45,14 @@ export const startPayment = async (userId?: string) => {
       name: "AI Tools Handbook",
       description: "Premium Access",
 
+      // 🔥 MAIN PAYMENT SUCCESS HANDLER
       handler: async function (response: any) {
         try {
           if (!response.razorpay_payment_id) {
             throw new Error("Payment failed");
           }
 
-          // Verify payment on backend
+          // ✅ 2. Verify payment
           const verifyRes = await fetch("/api/verify-payment", {
             method: "POST",
             headers: {
@@ -65,16 +67,24 @@ export const startPayment = async (userId?: string) => {
           });
 
           const verifyData = await verifyRes.json();
+
           if (verifyData.success) {
             alert("Payment Successful ✅");
+
+            // 🔥 USE REAL TOKEN (VERY IMPORTANT)
+            const token = verifyData.token;
+
+            // Optional: store locally
             localStorage.setItem("paid", "true");
-window.location.href = '/book?token=test123;
+
+            // ✅ Redirect with real token
+            window.location.href = `/book?token=${token}`;
           } else {
             alert("❌ Payment verification failed. Please contact support.");
           }
         } catch (error) {
           console.error("Error:", error);
-          alert("Error saving payment");
+          alert("Error verifying payment");
         }
       },
 
@@ -88,17 +98,13 @@ window.location.href = '/book?token=test123;
         address: "AI Tools Handbook Store",
       },
 
-      // STRICT UPI ONLY CONFIG
+      // ✅ UPI ONLY CONFIG
       config: {
         display: {
           blocks: {
             upi: {
               name: "Pay via UPI",
-              instruments: [
-                {
-                  method: "upi",
-                },
-              ],
+              instruments: [{ method: "upi" }],
             },
           },
           sequence: ["block.upi"],
@@ -115,16 +121,17 @@ window.location.href = '/book?token=test123;
       theme: {
         color: "#00C853",
       },
-      
+
       modal: {
-        ondismiss: function() {
-          console.log("Checkout form closed");
-        }
-      }
+        ondismiss: function () {
+          console.log("Checkout closed");
+        },
+      },
     };
 
+    // ✅ Check Razorpay loaded
     if (!window.Razorpay) {
-      alert("Razorpay SDK not loaded. Please check your internet connection.");
+      alert("Razorpay SDK not loaded.");
       return;
     }
 
