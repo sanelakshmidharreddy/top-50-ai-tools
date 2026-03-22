@@ -50,6 +50,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
     });
 
+    // ✅ GIVE USER LIFETIME ACCESS
+await db.collection("users").doc(userId).set(
+  {
+    hasPurchased: true,
+  },
+  { merge: true }
+);
+
     // ✅ Create secure token (payment ID)
     await db.collection("accessTokens").doc(razorpay_payment_id).set({
       token: razorpay_payment_id,
