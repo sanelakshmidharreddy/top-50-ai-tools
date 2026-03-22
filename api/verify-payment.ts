@@ -2,7 +2,6 @@ import { VercelRequest, VercelResponse } from "@vercel/node";
 import crypto from "crypto";
 import admin from "firebase-admin";
 
-// 🔥 Initialize Firebase Admin
 if (!admin.apps.length) {
   admin.initializeApp({
     credential: admin.credential.cert({
@@ -17,7 +16,6 @@ const db = admin.firestore();
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
 
-  // ✅ SECURITY: allow only POST
   if (req.method !== "POST") {
     return res.status(405).json({ message: "Method not allowed" });
   }
@@ -37,48 +35,27 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .update(body)
       .digest("hex");
 
-    // ❌ If invalid signature
     if (expectedSignature !== razorpay_signature) {
       return res.status(400).json({ success: false });
     }
 
-    // ✅ Save order
-    await db.collection("orders").add({ 
-      await db.collection("users").doc(userId).set(
-  {
-    hasPurchased: true,
-  },
-  { merge: true }
-);
+    // ✅ SAVE ORDER
+    await db.collection("orders").add({
       paymentId: razorpay_payment_id,
-      orderId: razorpay_order_id,
       userId,
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
     });
 
-    // ✅ GIVE USER LIFETIME ACCESS
-await db.collection("users").doc(userId).set(
-  {
-    hasPurchased: true,
-  },
-  { merge: true }
-);
+    // ✅ GIVE LIFETIME ACCESS
+    await db.collection("users").doc(userId).set(
+      { hasPurchased: true },
+      { merge: true }
+    );
 
-    // ✅ Create secure token (payment ID)
-    await db.collection("accessTokens").doc(razorpay_payment_id).set({
-      token: razorpay_payment_id,
-      valid: true,
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
-    });
-
-    // 🔥 Send token to frontend
-    return res.status(200).json({
-      success: true,
-      token: razorpay_payment_id,
-    });
+    return res.status(200).json({ success: true });
 
   } catch (error) {
-    console.error("Verify Payment Error:", error);
+    console.error(error);
     return res.status(500).json({ success: false });
   }
 }
