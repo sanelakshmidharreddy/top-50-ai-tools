@@ -21,14 +21,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(400).json({ error: "UID required" });
     }
 
-    // 🔥 Check user purchase
     const userDoc = await db.collection("users").doc(uid as string).get();
 
     if (!userDoc.exists || !userDoc.data()?.hasPurchased) {
       return res.status(403).json({ error: "Not purchased" });
     }
 
-    // 🔐 Your PDF URL (private storage recommended)
     const pdfUrl =
       "https://firebasestorage.googleapis.com/v0/b/top-50-ai-tools.firebasestorage.app/o/ebooks%2FTOP%2050%20AI%20Tools%205.0.pdf?alt=media";
 
