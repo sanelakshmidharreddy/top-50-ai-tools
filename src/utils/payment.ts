@@ -18,12 +18,14 @@ export const getTotalPurchases = async () => {
   }
 };
 
-export const startPayment = async (userId?: string) => { 
-  if (!userId) {
-  alert("Please login first to purchase");
-  return;
-}
+export const startPayment = async (userId?: string) => {
   try {
+    // ✅ LOGIN CHECK
+    if (!userId) {
+      alert("Please login first to purchase");
+      return;
+    }
+
     const res = await fetch("/api/create-order", {
       method: "POST",
       headers: {
@@ -32,9 +34,7 @@ export const startPayment = async (userId?: string) => {
       body: JSON.stringify({ userId }),
     });
 
-    if (!res.ok) {
-      throw new Error("Failed to create order");
-    }
+    if (!res.ok) throw new Error("Failed to create order");
 
     const data = await res.json();
 
@@ -49,10 +49,6 @@ export const startPayment = async (userId?: string) => {
 
       handler: async function (response: any) {
         try {
-          if (!response.razorpay_payment_id) {
-            throw new Error("Payment failed");
-          }
-
           const verifyRes = await fetch("/api/verify-payment", {
             method: "POST",
             headers: {
@@ -71,42 +67,20 @@ export const startPayment = async (userId?: string) => {
           if (verifyData.success) {
             alert("Payment Successful ✅");
 
-            // ✅ Lifetime access → redirect with UID
+            // ✅ FINAL REDIRECT
             window.location.href = "/book";
 
           } else {
-            alert("❌ Payment verification failed. Please contact support.");
+            alert("Payment verification failed");
           }
-
-        } catch (error) {
-          console.error("Error:", error);
-          alert("Error verifying payment");
+        } catch (err) {
+          console.error(err);
         }
       },
 
       prefill: {
         name: auth.currentUser?.displayName || "",
         email: auth.currentUser?.email || "",
-        contact: "",
-      },
-
-      notes: {
-        address: "AI Tools Handbook Store",
-      },
-
-      config: {
-        display: {
-          blocks: {
-            upi: {
-              name: "Pay via UPI",
-              instruments: [{ method: "upi" }],
-            },
-          },
-          sequence: ["block.upi"],
-          preferences: {
-            show_default_blocks: false,
-          },
-        },
       },
 
       upi: {
@@ -116,24 +90,12 @@ export const startPayment = async (userId?: string) => {
       theme: {
         color: "#00C853",
       },
-
-      modal: {
-        ondismiss: function () {
-          console.log("Checkout closed");
-        },
-      },
     };
-
-    if (!window.Razorpay) {
-      alert("Razorpay SDK not loaded.");
-      return;
-    }
 
     const rzp = new window.Razorpay(options);
     rzp.open();
 
   } catch (err) {
-    console.error("Payment error:", err);
-    alert("❌ Payment failed. Please try again.");
+    console.error(err);
   }
 };
