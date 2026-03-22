@@ -1,28 +1,40 @@
-
 import React, { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { getAuth } from "firebase/auth";
 
 export default function BookViewer() {
-  const [searchParams] = useSearchParams();
   const [pdfUrl, setPdfUrl] = useState("");
-  const [blur, setBlur] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  import { getAuth } from "firebase/auth";
+  const user = getAuth().currentUser;
 
-const user = getAuth().currentUser;
-const uid = user?.uid;
-
-  // 🔥 Load PDF securely
   useEffect(() => {
-    if (uid) {
-      fetch(`/api/get-pdf?uid=${uid}`)
-        .then(res => res.json())
-        .then(data => {
-          if (data.url) setPdfUrl(data.url);
-          else alert("Access denied");
-        });
-    }
-  }, [uid]);
+    const fetchPdf = async () => {
+      if (!user) {
+        alert("Please login first");
+        window.location.href = "/";
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/get-pdf?uid=${user.uid}`);
+        const data = await res.json();
+
+        if (data.url) {
+          setPdfUrl(data.url);
+        } else {
+          alert("You have not purchased this book");
+          window.location.href = "/pricing";
+        }
+      } catch (error) {
+        console.error(error);
+        alert("Error loading PDF");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPdf();
+  }, [user]);
 
   // 🔒 Protection
   useEffect(() => {
@@ -42,7 +54,11 @@ const uid = user?.uid;
     });
 
     document.addEventListener("visibilitychange", () => {
-      setBlur(document.hidden);
+      if (document.hidden) {
+        document.body.style.filter = "blur(20px)";
+      } else {
+        document.body.style.filter = "none";
+      }
     });
 
     return () => {
@@ -50,31 +66,32 @@ const uid = user?.uid;
     };
   }, []);
 
-  // 🔥 Dynamic watermark
   const watermark = `
-  PROTECTED CONTENT
-  UID: ${uid}
+  PROTECTED
+  USER: ${user?.email}
   TIME: ${new Date().toLocaleString()}
   `;
 
+  if (loading) {
+    return <p className="text-center mt-10">Loading secure content...</p>;
+  }
+
   return (
-    <div className={`h-screen ${blur ? "blur-2xl" : ""}`}>
+    <div className="h-screen">
 
       {/* 🔥 WATERMARK */}
       <div className="fixed inset-0 opacity-10 text-lg font-bold rotate-[-30deg] grid grid-cols-3 gap-20 pointer-events-none">
-        {Array.from({ length: 25 }).map((_, i) => (
+        {Array.from({ length: 30 }).map((_, i) => (
           <div key={i}>{watermark}</div>
         ))}
       </div>
 
-      {/* 🔥 PDF VIEW */}
-      {pdfUrl ? (
+      {/* 🔥 PDF VIEWER */}
+      {pdfUrl && (
         <iframe
-          src={pdfUrl + "#toolbar=0&navpanes=0&scrollbar=1"}
+          src={pdfUrl + "#toolbar=0&navpanes=0"}
           className="w-full h-full"
         />
-      ) : (
-        <p className="text-center mt-10">Loading secure content...</p>
       )}
     </div>
   );
