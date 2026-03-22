@@ -41,6 +41,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // ✅ SAVE ORDER
     await db.collection("orders").add({
+      // ✅ UPDATE USER PURCHASE STATUS
+await db.collection("users").doc(userId).set({
+  hasPurchased: true,
+  devices: [], // reset devices on purchase
+}, { merge: true });
       paymentId: razorpay_payment_id,
       userId,
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
