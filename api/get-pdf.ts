@@ -1,45 +1,25 @@
-import { VercelRequest, VercelResponse } from '@vercel/node';
-import { initializeApp, cert, getApps } from 'firebase-admin/app';
-import { getAuth } from 'firebase-admin/auth';
-import { getStorage } from 'firebase-admin/storage';
-
-// 🔐 Init Firebase Admin (use ENV vars in Vercel)
-if (!getApps().length) {
-  initializeApp({
-    credential: cert({
-      projectId: process.env.FIREBASE_PROJECT_ID,
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-    }),
-    storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
-  });
-}
+import { VercelRequest, VercelResponse } from "@vercel/node";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
-    const token = req.headers.authorization?.split("Bearer ")[1];
-    if (!token) return res.status(401).json({ error: "Unauthorized" });
+    const { token } = req.query;
 
-    // ✅ Verify user
-    const decoded = await getAuth().verifyIdToken(token);
-    const uid = decoded.uid;
+    if (!token) {
+      return res.status(400).json({ error: "Token missing" });
+    }
 
-    // 👉 OPTIONAL: Check Firestore for purchase flag
-    // (add if you store orders there)
+    // ⚠️ TEMPORARY (we will secure later)
+    if (token !== "test123") {
+      return res.status(403).json({ error: "Invalid token" });
+    }
 
-    const bucket = getStorage().bucket();
-    const file = bucket.file("ebooks/your-book.pdf");
+    // ✅ Your Firebase PDF URL
+    const pdfUrl =
+      "https://firebasestorage.googleapis.com/v0/b/top-50-ai-tools.firebasestorage.app/o/ebooks%2FTOP%2050%20AI%20Tools%205.0.pdf?alt=media";
 
-    // ⏳ Create temporary signed URL (1 min)
-    const [url] = await file.getSignedUrl({
-      action: "read",
-      expires: Date.now() + 60 * 1000,
-    });
-
-    return res.status(200).json({ url });
-
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: "Failed to fetch PDF" });
+    return res.status(200).json({ url: pdfUrl });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Server error" });
   }
 }
