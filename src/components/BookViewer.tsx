@@ -7,7 +7,10 @@ export default function BookViewer() {
   const [pdfUrl, setPdfUrl] = useState("");
   const [blur, setBlur] = useState(false);
 
-  const uid = searchParams.get("uid");
+  import { getAuth } from "firebase/auth";
+
+const user = getAuth().currentUser;
+const uid = user?.uid;
 
   // 🔥 Load PDF securely
   useEffect(() => {
