@@ -67,7 +67,8 @@ export const startPayment = async (userId?: string) => {
           const verifyData = await verifyRes.json();
           if (verifyData.success) {
             alert("Payment Successful ✅");
-            window.location.reload(); 
+            localStorage.setItem("paid", "true");
+window.location.href = "/book";
           } else {
             alert("❌ Payment verification failed. Please contact support.");
           }
