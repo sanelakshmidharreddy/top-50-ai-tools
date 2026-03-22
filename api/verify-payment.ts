@@ -43,7 +43,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     // ✅ Save order
-    await db.collection("orders").add({
+    await db.collection("orders").add({ 
+      await db.collection("users").doc(userId).set(
+  {
+    hasPurchased: true,
+  },
+  { merge: true }
+);
       paymentId: razorpay_payment_id,
       orderId: razorpay_order_id,
       userId,
