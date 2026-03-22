@@ -72,7 +72,7 @@ export const startPayment = async (userId?: string) => {
             alert("Payment Successful ✅");
 
             // ✅ Lifetime access → redirect with UID
-            window.location.href = `/book?uid=${userId}`;
+            window.location.href = "/book";
 
           } else {
             alert("❌ Payment verification failed. Please contact support.");
