@@ -1,4 +1,3 @@
-
 import { db, auth } from "../firebase";
 import { collection, getDocs } from "firebase/firestore";
 import { isMobile } from "./isMobile";
@@ -21,7 +20,6 @@ export const getTotalPurchases = async () => {
 
 export const startPayment = async (userId?: string) => {
   try {
-    // ✅ 1. Create order
     const res = await fetch("/api/create-order", {
       method: "POST",
       headers: {
@@ -45,14 +43,12 @@ export const startPayment = async (userId?: string) => {
       name: "AI Tools Handbook",
       description: "Premium Access",
 
-      // 🔥 MAIN PAYMENT SUCCESS HANDLER
       handler: async function (response: any) {
         try {
           if (!response.razorpay_payment_id) {
             throw new Error("Payment failed");
           }
 
-          // ✅ 2. Verify payment
           const verifyRes = await fetch("/api/verify-payment", {
             method: "POST",
             headers: {
@@ -71,17 +67,13 @@ export const startPayment = async (userId?: string) => {
           if (verifyData.success) {
             alert("Payment Successful ✅");
 
-            // 🔥 USE REAL TOKEN (VERY IMPORTANT)
-            const token = verifyData.token;
+            // ✅ Lifetime access → redirect with UID
+            window.location.href = `/book?uid=${userId}`;
 
-            // Optional: store locally
-            localStorage.setItem("paid", "true");
-
-            // ✅ Redirect with real token
-            window.location.href = `/book?token=${token}`;
           } else {
             alert("❌ Payment verification failed. Please contact support.");
           }
+
         } catch (error) {
           console.error("Error:", error);
           alert("Error verifying payment");
@@ -98,7 +90,6 @@ export const startPayment = async (userId?: string) => {
         address: "AI Tools Handbook Store",
       },
 
-      // ✅ UPI ONLY CONFIG
       config: {
         display: {
           blocks: {
@@ -129,7 +120,6 @@ export const startPayment = async (userId?: string) => {
       },
     };
 
-    // ✅ Check Razorpay loaded
     if (!window.Razorpay) {
       alert("Razorpay SDK not loaded.");
       return;
