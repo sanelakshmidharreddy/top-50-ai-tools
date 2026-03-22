@@ -15,33 +15,25 @@ const db = admin.firestore();
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
-    const { token } = req.query;
+    const { uid } = req.query;
 
-    if (!token) {
-      return res.status(400).json({ error: "Token missing" });
+    if (!uid) {
+      return res.status(400).json({ error: "UID required" });
     }
 
-    const doc = await db.collection("accessTokens").doc(token as string).get();
+    // 🔥 Check user purchase
+    const userDoc = await db.collection("users").doc(uid as string).get();
 
-    if (!doc.exists) {
-      return res.status(403).json({ error: "Invalid access" });
+    if (!userDoc.exists || !userDoc.data()?.hasPurchased) {
+      return res.status(403).json({ error: "Not purchased" });
     }
 
-    const data = doc.data();
-
-    if (!data?.valid) {
-      return res.status(403).json({ error: "Token expired" });
-    }
-
-    // 🔥 OPTIONAL: Expire after first use
-    await db.collection("accessTokens").doc(token as string).update({
-      valid: false,
-    });
-
+    // 🔐 Your PDF URL (private storage recommended)
     const pdfUrl =
       "https://firebasestorage.googleapis.com/v0/b/top-50-ai-tools.firebasestorage.app/o/ebooks%2FTOP%2050%20AI%20Tools%205.0.pdf?alt=media";
 
     return res.status(200).json({ url: pdfUrl });
+
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: "Server error" });
