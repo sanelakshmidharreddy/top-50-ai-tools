@@ -18,7 +18,11 @@ export const getTotalPurchases = async () => {
   }
 };
 
-export const startPayment = async (userId?: string) => {
+export const startPayment = async (userId?: string) => { 
+  if (!userId) {
+  alert("Please login first to purchase");
+  return;
+}
   try {
     const res = await fetch("/api/create-order", {
       method: "POST",
