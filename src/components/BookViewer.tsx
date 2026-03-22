@@ -63,6 +63,8 @@ export default function BookViewer() {
         const res = await fetch(`/api/get-pdf?uid=${user.uid}`);
         const dataRes = await res.json();
 
+        console.log("PDF API RESPONSE:", data); // ✅ ADD THIS
+
         if (dataRes.url) {
           setPdfUrl(dataRes.url);
         } else {
