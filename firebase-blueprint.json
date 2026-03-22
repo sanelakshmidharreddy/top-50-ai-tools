@@ -1,0 +1,25 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "Stores user purchase status and session info.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "displayName": { "type": "string" },
+        "hasPurchased": { "type": "boolean" },
+        "paymentId": { "type": "string" },
+        "currentDeviceId": { "type": "string" },
+        "lastLogin": { "type": "number" }
+      },
+      "required": ["uid", "email", "hasPurchased"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User profile documents."
+    }
+  }
+}
