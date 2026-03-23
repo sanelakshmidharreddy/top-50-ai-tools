@@ -132,13 +132,28 @@ export default function BookViewer() {
   }
 
   return (
-    <div className="h-screen w-full bg-black flex flex-col">
+  <div className="relative h-screen w-full bg-black flex flex-col">
       
       {/* TOP BAR */}
       <div className="p-3 bg-gray-900 text-white text-center">
         📘 Your Book
       </div>
-
+{/* 🔐 WATERMARK OVERLAY */}
+<div className="absolute inset-0 pointer-events-none z-10 overflow-hidden">
+  <div className="w-full h-full flex flex-wrap opacity-10 text-white text-xs">
+    {[...Array(40)].map((_, i) => (
+      <div
+        key={i}
+        className="w-1/3 text-center py-4"
+        style={{
+          transform: `rotate(-20deg) translateY(${i * 10}px)`
+        }}
+      >
+        {user?.email} • {new Date().toLocaleTimeString()}
+      </div>
+    ))}
+  </div>
+</div>
       {/* PDF VIEW */}
       <div className="flex-1">
         {pdfUrl ? (
