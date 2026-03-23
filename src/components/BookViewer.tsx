@@ -42,7 +42,7 @@ export default function BookViewer() {
 
         const userData = userSnap.data();
 
-        // ❗ IMPORTANT FIX — PURCHASE CHECK
+        // ❗ PURCHASE CHECK
         if (!userData.hasPurchased) {
           alert("Please purchase first");
           window.location.href = "/pricing";
@@ -65,7 +65,7 @@ export default function BookViewer() {
           });
         }
 
-        // 📄 FETCH PDF FROM BACKEND
+        // 📄 FETCH PDF URL
         const res = await fetch(`/api/get-pdf?uid=${user.uid}`);
         const dataRes = await res.json();
 
@@ -128,7 +128,7 @@ export default function BookViewer() {
     <div className="h-screen w-full bg-black">
       {pdfUrl ? (
         <iframe
-          src={pdfUrl + "#toolbar=0&navpanes=0&scrollbar=0"}
+          src={`https://docs.google.com/gview?url=${encodeURIComponent(pdfUrl)}&embedded=true`}
           className="w-full h-full"
         />
       ) : (
