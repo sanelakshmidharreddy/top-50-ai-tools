@@ -118,44 +118,45 @@ export default function BookViewer() {
   }
 
   return (
-    <div className="relative h-screen w-full bg-black flex flex-col">
+  <div className="relative h-screen w-full bg-black flex flex-col overflow-hidden">
 
-      {/* TOP BAR */}
-      <div className="p-3 bg-gray-900 text-white text-center">
-        📘 Your Book
-      </div>
-
-      {/* 🔐 WATERMARK */}
-      <div className="absolute inset-0 pointer-events-none z-10 overflow-hidden">
-        <div className="w-full h-full flex flex-wrap opacity-10 text-white text-xs">
-          {[...Array(40)].map((_, i) => (
-            <div
-              key={i}
-              className="w-1/3 text-center py-4"
-              style={{
-                transform: `rotate(-20deg) translateY(${i * 10}px)`
-              }}
-            >
-              {user?.email} • {new Date().toLocaleTimeString()}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* 📄 PDF VIEW */}
-      <div className="flex-1">
-        {pdfUrl ? (
-          <iframe
-            src={pdfUrl + "#toolbar=0&navpanes=0&scrollbar=0"}
-            className="w-full h-full"
-          />
-        ) : (
-          <p className="text-center mt-10 text-white">
-            Unable to load PDF
-          </p>
-        )}
-      </div>
-
+    {/* TOP BAR */}
+    <div className="p-3 bg-gray-900 text-white text-center">
+      📘 Your Book (Protected View)
     </div>
-  );
+
+    {/* 🔐 WATERMARK */}
+    <div className="absolute inset-0 pointer-events-none z-10 overflow-hidden">
+      <div className="w-full h-full flex flex-wrap opacity-10 text-white text-xs">
+        {[...Array(40)].map((_, i) => (
+          <div
+            key={i}
+            className="w-1/3 text-center py-4"
+            style={{
+              transform: `rotate(-20deg) translateY(${i * 10}px)`
+            }}
+          >
+            {user?.email}
+          </div>
+        ))}
+      </div>
+    </div>
+
+    {/* 🚫 PDF VIEW (STRICT) */}
+    <div className="flex-1 pointer-events-auto">
+      {pdfUrl ? (
+        <iframe
+          src={pdfUrl}
+          className="w-full h-full border-none"
+          sandbox="allow-same-origin allow-scripts"
+        />
+      ) : (
+        <p className="text-center mt-10 text-white">
+          Unable to load PDF
+        </p>
+      )}
+    </div>
+
+  </div>
+);
 }
