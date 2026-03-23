@@ -36,25 +36,27 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(403).json({ error: "Not purchased" });
     }
 
-    // 📄 FILE PATH (IMPORTANT)
+    // 📄 FILE PATH
     const file = bucket.file("ebooks/top50.pdf");
 
-    // 🔥 CHECK FILE EXISTS
     const [exists] = await file.exists();
     if (!exists) {
-      return res.status(404).json({ error: "PDF not found in storage" });
+      return res.status(404).json({ error: "PDF not found" });
     }
 
-    // 🔐 GENERATE SIGNED URL
-    const [url] = await file.getSignedUrl({
-      action: "read",
-      expires: Date.now() + 1000 * 60 * 5, // 5 minutes
-    });
+    // 🔥 DOWNLOAD FILE BUFFER (NO PUBLIC URL)
+    const [buffer] = await file.download();
 
-    return res.status(200).json({ url });
+    // 🔐 SECURITY HEADERS
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", "inline"); // prevent download button
+    res.setHeader("Cache-Control", "no-store");
+    res.setHeader("X-Content-Type-Options", "nosniff");
+
+    return res.status(200).send(buffer);
 
   } catch (err) {
     console.error("API ERROR:", err);
-    return res.status(500).json({ error: "Server error", details: err });
+    return res.status(500).json({ error: "Server error" });
   }
 }
