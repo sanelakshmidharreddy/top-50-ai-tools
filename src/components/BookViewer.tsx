@@ -125,30 +125,38 @@ export default function BookViewer() {
   }
 
 return (
-  <div className="h-screen w-full bg-black">
-    {pdfUrl ? (
-      <>
+  <div className="h-screen w-full bg-black flex flex-col">
+    
+    {/* TOP BAR */}
+    <div className="p-3 bg-gray-900 text-white text-center">
+      📘 Your Book
+    </div>
+
+    {/* PDF VIEW */}
+    <div className="flex-1">
+      {pdfUrl ? (
         <iframe
           src={pdfUrl}
-          className="w-full h-[90%]"
+          className="w-full h-full"
         />
+      ) : (
+        <p className="text-center mt-10 text-white">
+          Loading PDF...
+        </p>
+      )}
+    </div>
 
-        {/* Mobile fallback */}
-        <div className="text-center mt-2">
-          <a
-            href={pdfUrl}
-            target="_blank"
-            className="text-blue-400 underline"
-          >
-            Open PDF in new tab
-          </a>
-        </div>
-      </>
-    ) : (
-      <p className="text-center mt-10 text-white">
-        Unable to load PDF
-      </p>
-    )}
+    {/* MOBILE FIX BUTTON */}
+    <div className="p-3 text-center bg-black">
+      <a
+        href={pdfUrl}
+        target="_blank"
+        className="text-blue-400 underline"
+      >
+        Open PDF (If not loading)
+      </a>
+    </div>
+
   </div>
 );
 }
