@@ -43,7 +43,7 @@ export default function BookViewer() {
         const userData = userSnap.data();
 
         // ❗ PURCHASE CHECK
-        if (!userData.hasPurchased) {
+        if (!userData?.hasPurchased) {
           alert("Please purchase first");
           window.location.href = "/pricing";
           return;
@@ -65,16 +65,9 @@ export default function BookViewer() {
           });
         }
 
-        // 📄 FETCH PDF URL
-        const res = await fetch(`/api/get-pdf?uid=${user.uid}`);
-        const dataRes = await res.json();
-
-        if (dataRes?.url) {
-          setPdfUrl(dataRes.url);
-        } else {
-          alert("Access denied. Please purchase.");
-          window.location.href = "/pricing";
-        }
+        // ✅ SET SECURE STREAM URL (NO FETCH JSON)
+        const secureUrl = `/api/get-pdf?uid=${user.uid}`;
+        setPdfUrl(secureUrl);
 
       } catch (err) {
         console.error("ERROR:", err);
@@ -87,13 +80,6 @@ export default function BookViewer() {
 
     load();
   }, [user]);
-
-  // ⚡ PRELOAD PDF (FASTER LOADING)
-  useEffect(() => {
-    if (pdfUrl) {
-      fetch(pdfUrl);
-    }
-  }, [pdfUrl]);
 
   // 🔐 BASIC PROTECTION
   useEffect(() => {
@@ -126,39 +112,41 @@ export default function BookViewer() {
   if (loading) {
     return (
       <p className="text-center mt-10 text-lg font-bold text-white">
-        ⚡ Preparing your book... (First load may take a few seconds)
+        ⚡ Preparing your book...
       </p>
     );
   }
 
   return (
-  <div className="relative h-screen w-full bg-black flex flex-col">
-      
+    <div className="relative h-screen w-full bg-black flex flex-col">
+
       {/* TOP BAR */}
       <div className="p-3 bg-gray-900 text-white text-center">
         📘 Your Book
       </div>
-{/* 🔐 WATERMARK OVERLAY */}
-<div className="absolute inset-0 pointer-events-none z-10 overflow-hidden">
-  <div className="w-full h-full flex flex-wrap opacity-10 text-white text-xs">
-    {[...Array(40)].map((_, i) => (
-      <div
-        key={i}
-        className="w-1/3 text-center py-4"
-        style={{
-          transform: `rotate(-20deg) translateY(${i * 10}px)`
-        }}
-      >
-        {user?.email} • {new Date().toLocaleTimeString()}
+
+      {/* 🔐 WATERMARK */}
+      <div className="absolute inset-0 pointer-events-none z-10 overflow-hidden">
+        <div className="w-full h-full flex flex-wrap opacity-10 text-white text-xs">
+          {[...Array(40)].map((_, i) => (
+            <div
+              key={i}
+              className="w-1/3 text-center py-4"
+              style={{
+                transform: `rotate(-20deg) translateY(${i * 10}px)`
+              }}
+            >
+              {user?.email} • {new Date().toLocaleTimeString()}
+            </div>
+          ))}
+        </div>
       </div>
-    ))}
-  </div>
-</div>
-      {/* PDF VIEW */}
+
+      {/* 📄 PDF VIEW */}
       <div className="flex-1">
         {pdfUrl ? (
           <iframe
-            src={pdfUrl}
+            src={pdfUrl + "#toolbar=0&navpanes=0&scrollbar=0"}
             className="w-full h-full"
           />
         ) : (
@@ -166,17 +154,6 @@ export default function BookViewer() {
             Unable to load PDF
           </p>
         )}
-      </div>
-
-      {/* MOBILE FALLBACK */}
-      <div className="p-3 text-center bg-black">
-        <a
-          href={pdfUrl}
-          target="_blank"
-          className="text-blue-400 underline"
-        >
-          Open PDF (If not loading)
-        </a>
       </div>
 
     </div>
