@@ -55,7 +55,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     res.setHeader("X-Content-Type-Options", "nosniff");
 
     // 🚫 BLOCK EMBEDDING OUTSIDE YOUR SITE
-    res.setHeader("X-Frame-Options", "SAMEORIGIN");
+  
 
     return res.status(200).send(buffer);
 
