@@ -88,6 +88,13 @@ export default function BookViewer() {
     load();
   }, [user]);
 
+  // ⚡ PRELOAD PDF (FASTER LOADING)
+  useEffect(() => {
+    if (pdfUrl) {
+      fetch(pdfUrl);
+    }
+  }, [pdfUrl]);
+
   // 🔐 BASIC PROTECTION
   useEffect(() => {
     const disable = (e: any) => e.preventDefault();
@@ -118,45 +125,45 @@ export default function BookViewer() {
   // 🔄 UI
   if (loading) {
     return (
-      <p className="text-center mt-10 text-lg font-bold">
-        Loading secure content...
+      <p className="text-center mt-10 text-lg font-bold text-white">
+        ⚡ Preparing your book... (First load may take a few seconds)
       </p>
     );
   }
 
-return (
-  <div className="h-screen w-full bg-black flex flex-col">
-    
-    {/* TOP BAR */}
-    <div className="p-3 bg-gray-900 text-white text-center">
-      📘 Your Book
-    </div>
+  return (
+    <div className="h-screen w-full bg-black flex flex-col">
+      
+      {/* TOP BAR */}
+      <div className="p-3 bg-gray-900 text-white text-center">
+        📘 Your Book
+      </div>
 
-    {/* PDF VIEW */}
-    <div className="flex-1">
-      {pdfUrl ? (
-        <iframe
-          src={pdfUrl}
-          className="w-full h-full"
-        />
-      ) : (
-        <p className="text-center mt-10 text-white">
-          Loading PDF...
-        </p>
-      )}
-    </div>
+      {/* PDF VIEW */}
+      <div className="flex-1">
+        {pdfUrl ? (
+          <iframe
+            src={pdfUrl}
+            className="w-full h-full"
+          />
+        ) : (
+          <p className="text-center mt-10 text-white">
+            Unable to load PDF
+          </p>
+        )}
+      </div>
 
-    {/* MOBILE FIX BUTTON */}
-    <div className="p-3 text-center bg-black">
-      <a
-        href={pdfUrl}
-        target="_blank"
-        className="text-blue-400 underline"
-      >
-        Open PDF (If not loading)
-      </a>
-    </div>
+      {/* MOBILE FALLBACK */}
+      <div className="p-3 text-center bg-black">
+        <a
+          href={pdfUrl}
+          target="_blank"
+          className="text-blue-400 underline"
+        >
+          Open PDF (If not loading)
+        </a>
+      </div>
 
-  </div>
-);
+    </div>
+  );
 }
