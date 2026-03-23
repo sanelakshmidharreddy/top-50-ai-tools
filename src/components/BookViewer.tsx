@@ -18,6 +18,7 @@ export default function BookViewer() {
         alert("Login required");
         window.location.href = "/";
       } else {
+        console.log("USER UID:", currentUser.uid); // ✅ CORRECT PLACE
         setUser(currentUser);
       }
     });
@@ -41,8 +42,8 @@ export default function BookViewer() {
           return;
         }
 
-        const data = userSnap.data();
-        const devices = data.devices || [];
+        const userData = userSnap.data();
+        const devices = userData.devices || [];
 
         // ✅ already allowed
         if (!devices.includes(deviceId)) {
@@ -63,7 +64,7 @@ export default function BookViewer() {
         const res = await fetch(`/api/get-pdf?uid=${user.uid}`);
         const dataRes = await res.json();
 
-        console.log("PDF API RESPONSE:", data); // ✅ ADD THIS
+        console.log("PDF API RESPONSE:", dataRes); // ✅ FIXED
 
         if (dataRes.url) {
           setPdfUrl(dataRes.url);
@@ -73,7 +74,7 @@ export default function BookViewer() {
         }
 
       } catch (err) {
-        console.error(err);
+        console.error("ERROR:", err);
         alert("Error loading content");
       } finally {
         setLoading(false);
@@ -89,7 +90,7 @@ export default function BookViewer() {
 
     document.addEventListener("contextmenu", disable);
 
-    document.addEventListener("keydown", (e) => {
+    const keyBlock = (e: any) => {
       if (
         e.key === "PrintScreen" ||
         (e.ctrlKey && ["p", "s", "u"].includes(e.key.toLowerCase())) ||
@@ -98,10 +99,13 @@ export default function BookViewer() {
       ) {
         e.preventDefault();
       }
-    });
+    };
+
+    document.addEventListener("keydown", keyBlock);
 
     return () => {
       document.removeEventListener("contextmenu", disable);
+      document.removeEventListener("keydown", keyBlock);
     };
   }, []);
 
