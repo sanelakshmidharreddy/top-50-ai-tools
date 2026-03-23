@@ -20,28 +20,41 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const { uid } = req.query;
 
     if (!uid) {
-      return res.status(400).json({ error: "No UID" });
+      return res.status(400).json({ error: "No UID provided" });
     }
 
-    // 🔥 CHECK USER PURCHASE
+    // 🔐 CHECK PURCHASE
     const userDoc = await db.collection("users").doc(uid as string).get();
 
-    if (!userDoc.exists || !userDoc.data()?.hasPurchased) {
+    if (!userDoc.exists) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const userData = userDoc.data();
+
+    if (!userData?.hasPurchased) {
       return res.status(403).json({ error: "Not purchased" });
     }
 
-    // 📄 GET FILE
+    // 📄 FILE PATH (IMPORTANT)
     const file = bucket.file("ebooks/top50.pdf");
 
+    // 🔥 CHECK FILE EXISTS
+    const [exists] = await file.exists();
+    if (!exists) {
+      return res.status(404).json({ error: "PDF not found in storage" });
+    }
+
+    // 🔐 GENERATE SIGNED URL
     const [url] = await file.getSignedUrl({
       action: "read",
-      expires: Date.now() + 1000 * 60 * 10,
+      expires: Date.now() + 1000 * 60 * 5, // 5 minutes
     });
 
     return res.status(200).json({ url });
 
   } catch (err) {
     console.error("API ERROR:", err);
-    return res.status(500).json({ error: "Server error" });
+    return res.status(500).json({ error: "Server error", details: err });
   }
 }
