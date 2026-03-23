@@ -9,7 +9,7 @@ export default function BookViewer() {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
 
-  // 🔐 Listen auth properly
+  // 🔐 AUTH LISTENER
   useEffect(() => {
     const auth = getAuth();
 
@@ -18,7 +18,6 @@ export default function BookViewer() {
         alert("Login required");
         window.location.href = "/";
       } else {
-        console.log("USER UID:", currentUser.uid); // ✅ CORRECT PLACE
         setUser(currentUser);
       }
     });
@@ -26,56 +25,61 @@ export default function BookViewer() {
     return () => unsubscribe();
   }, []);
 
-  // 🔥 MAIN LOAD (PDF + DEVICE CHECK)
+  // 🔥 MAIN LOGIC
   useEffect(() => {
     const load = async () => {
       if (!user) return;
 
       try {
-        // 🔐 DEVICE LIMIT CHECK
-        const deviceId = getDeviceId();
         const userRef = doc(db, "users", user.uid);
         const userSnap = await getDoc(userRef);
 
         if (!userSnap.exists()) {
           alert("User not found");
+          window.location.href = "/pricing";
           return;
         }
 
         const userData = userSnap.data();
+
+        // ❗ IMPORTANT FIX — PURCHASE CHECK
+        if (!userData.hasPurchased) {
+          alert("Please purchase first");
+          window.location.href = "/pricing";
+          return;
+        }
+
+        // 🔐 DEVICE LIMIT
+        const deviceId = getDeviceId();
         const devices = userData.devices || [];
 
-        // ✅ already allowed
         if (!devices.includes(deviceId)) {
-          // ❌ limit reached
           if (devices.length >= 2) {
             alert("❌ Device limit reached (Max 2 devices)");
             window.location.href = "/pricing";
             return;
           }
 
-          // ✅ add device
           await updateDoc(userRef, {
             devices: [...devices, deviceId],
           });
         }
 
-        // 📄 FETCH PDF (secure backend)
+        // 📄 FETCH PDF FROM BACKEND
         const res = await fetch(`/api/get-pdf?uid=${user.uid}`);
         const dataRes = await res.json();
 
-        console.log("PDF API RESPONSE:", dataRes); // ✅ FIXED
-
-        if (dataRes.url) {
+        if (dataRes?.url) {
           setPdfUrl(dataRes.url);
         } else {
-          alert("Please purchase first");
+          alert("Access denied. Please purchase.");
           window.location.href = "/pricing";
         }
 
       } catch (err) {
         console.error("ERROR:", err);
         alert("Error loading content");
+        window.location.href = "/";
       } finally {
         setLoading(false);
       }
@@ -84,7 +88,7 @@ export default function BookViewer() {
     load();
   }, [user]);
 
-  // 🔐 BASIC PROTECTIONS
+  // 🔐 BASIC PROTECTION
   useEffect(() => {
     const disable = (e: any) => e.preventDefault();
 
@@ -94,7 +98,9 @@ export default function BookViewer() {
       if (
         e.key === "PrintScreen" ||
         (e.ctrlKey && ["p", "s", "u"].includes(e.key.toLowerCase())) ||
-        (e.ctrlKey && e.shiftKey && ["i", "j", "c"].includes(e.key.toLowerCase())) ||
+        (e.ctrlKey &&
+          e.shiftKey &&
+          ["i", "j", "c"].includes(e.key.toLowerCase())) ||
         e.key === "F12"
       ) {
         e.preventDefault();
