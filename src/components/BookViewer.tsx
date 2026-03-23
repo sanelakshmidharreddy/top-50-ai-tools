@@ -124,18 +124,31 @@ export default function BookViewer() {
     );
   }
 
-  return (
-    <div className="h-screen w-full bg-black">
-      {pdfUrl ? (
+return (
+  <div className="h-screen w-full bg-black">
+    {pdfUrl ? (
+      <>
         <iframe
-          src={`https://docs.google.com/gview?url=${encodeURIComponent(pdfUrl)}&embedded=true`}
-          className="w-full h-full"
+          src={pdfUrl}
+          className="w-full h-[90%]"
         />
-      ) : (
-        <p className="text-center mt-10 text-white">
-          Unable to load PDF
-        </p>
-      )}
-    </div>
-  );
+
+        {/* Mobile fallback */}
+        <div className="text-center mt-2">
+          <a
+            href={pdfUrl}
+            target="_blank"
+            className="text-blue-400 underline"
+          >
+            Open PDF in new tab
+          </a>
+        </div>
+      </>
+    ) : (
+      <p className="text-center mt-10 text-white">
+        Unable to load PDF
+      </p>
+    )}
+  </div>
+);
 }
