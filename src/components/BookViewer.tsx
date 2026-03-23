@@ -145,11 +145,10 @@ export default function BookViewer() {
     {/* 🚫 PDF VIEW (STRICT) */}
     <div className="flex-1 pointer-events-auto">
       {pdfUrl ? (
-        <iframe
-          src={pdfUrl}
-          className="w-full h-full border-none"
-          sandbox="allow-same-origin allow-scripts"
-        />
+       <iframe
+  src={pdfUrl}
+  className="w-full h-full border-none"
+/>
       ) : (
         <p className="text-center mt-10 text-white">
           Unable to load PDF
