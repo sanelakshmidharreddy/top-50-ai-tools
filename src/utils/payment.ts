@@ -1,5 +1,5 @@
 import { db, auth } from "../firebase";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, doc, setDoc } from "firebase/firestore";
 import { isMobile } from "./isMobile";
 
 declare global {
@@ -47,6 +47,7 @@ export const startPayment = async (userId?: string) => {
       name: "AI Tools Handbook",
       description: "Premium Access",
 
+      // 🔥 MAIN FIX HERE
       handler: async function (response: any) {
         try {
           const verifyRes = await fetch("/api/verify-payment", {
@@ -65,16 +66,22 @@ export const startPayment = async (userId?: string) => {
           const verifyData = await verifyRes.json();
 
           if (verifyData.success) {
+            // ✅ SAVE PURCHASE IN FIRESTORE
+            await setDoc(doc(db, "users", userId), {
+              hasPurchased: true,
+            }, { merge: true });
+
             alert("Payment Successful ✅");
 
-            // ✅ FINAL REDIRECT
-            window.location.href = "/book";
+            // ✅ REDIRECT TO VIEWER (IMPORTANT)
+            window.location.href = "/viewer";
 
           } else {
             alert("Payment verification failed");
           }
         } catch (err) {
           console.error(err);
+          alert("Something went wrong during verification");
         }
       },
 
