@@ -23,7 +23,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(400).json({ error: "No UID provided" });
     }
 
-    // 🔐 CHECK PURCHASE
+    // 🔐 PURCHASE CHECK
     const userDoc = await db.collection("users").doc(uid as string).get();
 
     if (!userDoc.exists) {
@@ -36,7 +36,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(403).json({ error: "Not purchased" });
     }
 
-    // 📄 FILE PATH
+    // 📄 FILE
     const file = bucket.file("ebooks/top50.pdf");
 
     const [exists] = await file.exists();
@@ -44,14 +44,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(404).json({ error: "PDF not found" });
     }
 
-    // 🔥 DOWNLOAD FILE BUFFER (NO PUBLIC URL)
     const [buffer] = await file.download();
 
-    // 🔐 SECURITY HEADERS
+    // 🔐 STRONG SECURITY HEADERS
     res.setHeader("Content-Type", "application/pdf");
-    res.setHeader("Content-Disposition", "inline"); // prevent download button
-    res.setHeader("Cache-Control", "no-store");
+    res.setHeader("Content-Disposition", "inline; filename=secure.pdf");
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
+    res.setHeader("Pragma", "no-cache");
+    res.setHeader("Expires", "0");
     res.setHeader("X-Content-Type-Options", "nosniff");
+
+    // 🚫 BLOCK EMBEDDING OUTSIDE YOUR SITE
+    res.setHeader("X-Frame-Options", "SAMEORIGIN");
 
     return res.status(200).send(buffer);
 
