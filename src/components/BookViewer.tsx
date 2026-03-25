@@ -1,20 +1,25 @@
 import React, { useEffect, useState } from "react";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
-import { doc, getDoc, updateDoc, addDoc, collection } from "firebase/firestore";
+import {
+  doc,
+  getDoc,
+  updateDoc,
+  addDoc,
+  collection,
+} from "firebase/firestore";
 import { db } from "../firebase";
 import { getDeviceId } from "../utils/device";
 import { getStorage, ref, getDownloadURL } from "firebase/storage";
-import { collection, addDoc } from "firebase/firestore";
 
 export default function BookViewer() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [pages, setPages] = useState<string[]>([]);
   const [blur, setBlur] = useState(false);
-const [showWarning, setShowWarning] = useState(false);
-const [attempts, setAttempts] = useState(0);
+  const [showWarning, setShowWarning] = useState(false);
+  const [attempts, setAttempts] = useState(0);
 
-  // ✅ ADD HERE (exact location)
+  // 🔥 LOG SECURITY EVENT
   const logSecurityEvent = async (action: string) => {
     try {
       await addDoc(collection(db, "security_logs"), {
@@ -26,6 +31,7 @@ const [attempts, setAttempts] = useState(0);
       console.log("Log error", e);
     }
   };
+
   // 🔐 AUTH CHECK
   useEffect(() => {
     const auth = getAuth();
@@ -80,20 +86,24 @@ const [attempts, setAttempts] = useState(0);
     run();
   }, [user]);
 
-  // 🔥 LOAD IMAGES (SECURE WAY)
+  // 🔥 LOAD IMAGES (FAST + SAFE)
   useEffect(() => {
     const loadImages = async () => {
       const storage = getStorage();
-      const urls = [];
 
-      for (let i = 1; i <= 108; i++) {
-        const num = String(i).padStart(3, "0");
-        const imageRef = ref(storage, `ebooks/${num}.jpg`);
-        const url = await getDownloadURL(imageRef);
-        urls.push(url);
+      try {
+        const urls = await Promise.all(
+          Array.from({ length: 108 }, async (_, i) => {
+            const num = String(i + 1).padStart(3, "0");
+            const imageRef = ref(storage, `ebooks/${num}.jpg`);
+            return await getDownloadURL(imageRef);
+          })
+        );
+
+        setPages(urls);
+      } catch (err) {
+        console.log("Image loading error:", err);
       }
-
-      setPages(urls);
     };
 
     if (user) loadImages();
@@ -107,11 +117,13 @@ const [attempts, setAttempts] = useState(0);
       if (
         e.key === "PrintScreen" ||
         (e.ctrlKey && ["p", "s", "u"].includes(e.key.toLowerCase())) ||
-        (e.ctrlKey && e.shiftKey && ["i", "j", "c"].includes(e.key.toLowerCase())) ||
+        (e.ctrlKey &&
+          e.shiftKey &&
+          ["i", "j", "c"].includes(e.key.toLowerCase())) ||
         e.key === "F12"
       ) {
         e.preventDefault();
-        logSuspicious("Blocked key attempt");
+        logSecurityEvent("Blocked key attempt");
       }
     };
 
@@ -124,91 +136,50 @@ const [attempts, setAttempts] = useState(0);
     };
   }, []);
 
+  // 🔥 SCREENSHOT DETECTION + LIMIT
   useEffect(() => {
-  let timeout: any;
+    let timeout: any;
 
-  const triggerBlur = () => {
-    setBlur(true);
+    const triggerSecurity = () => {
+      setBlur(true);
+      setShowWarning(true);
 
-    // 🔥 optional: log event
-    console.log("Screen capture suspected");
+      setAttempts((prev) => {
+        const newCount = prev + 1;
 
-    clearTimeout(timeout);
-    timeout = setTimeout(() => {
-      setBlur(false);
-    }, 2000); // blur for 2 sec
-  };
+        logSecurityEvent(`Screenshot attempt ${newCount}`);
 
-  const handleVisibility = () => {
-    if (document.hidden) {
-      triggerBlur();
-    }
-  };
+        if (newCount >= 10) {
+          alert("🚫 Access blocked due to multiple screenshots");
+          window.location.href = "/blocked";
+        }
 
-  const handleKey = (e: any) => {
-    if (e.key === "PrintScreen") {
-      triggerBlur();
-    }
-  };
+        return newCount;
+      });
 
-  document.addEventListener("visibilitychange", handleVisibility);
-  document.addEventListener("keydown", handleKey);
+      clearTimeout(timeout);
+      timeout = setTimeout(() => {
+        setBlur(false);
+        setShowWarning(false);
+      }, 2000);
+    };
 
-  return () => {
-    document.removeEventListener("visibilitychange", handleVisibility);
-    document.removeEventListener("keydown", handleKey);
-  };
-}, []);
-  
+    const handleVisibility = () => {
+      if (document.hidden) triggerSecurity();
+    };
 
-  // 🔥 SCREENSHOT / DEVTOOLS DETECTION (SIMULATION)
- useEffect(() => {
-  let timeout: any;
+    const handleKey = (e: any) => {
+      if (e.key === "PrintScreen") triggerSecurity();
+    };
 
-  const triggerSecurity = () => {
-    setBlur(true);
-    setShowWarning(true);
+    document.addEventListener("visibilitychange", handleVisibility);
+    document.addEventListener("keydown", handleKey);
 
-    setAttempts((prev) => {
-      const newCount = prev + 1;
-
-      logSecurityEvent(`Screenshot attempt ${newCount}`);
-
-      if (newCount >= 10) {
-        alert("🚫 Access blocked due to multiple screenshots");
-        window.location.href = "/blocked";
-      }
-
-      return newCount;
-    });
-
-    clearTimeout(timeout);
-    timeout = setTimeout(() => {
-      setBlur(false);
-      setShowWarning(false);
-    }, 2000);
-  };
-
-  const handleVisibility = () => {
-    if (document.hidden) {
-      triggerSecurity();
-    }
-  };
-
-  const handleKey = (e: any) => {
-    if (e.key === "PrintScreen") {
-      triggerSecurity();
-    }
-  };
-
-  document.addEventListener("visibilitychange", handleVisibility);
-  document.addEventListener("keydown", handleKey);
-
-  return () => {
-    document.removeEventListener("visibilitychange", handleVisibility);
-    document.removeEventListener("keydown", handleKey);
-  };
-}, []);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibility);
+      document.removeEventListener("keydown", handleKey);
+    };
+  }, []);
 
   // ⏳ SESSION LIMIT
   useEffect(() => {
@@ -220,31 +191,18 @@ const [attempts, setAttempts] = useState(0);
     return () => clearTimeout(timer);
   }, []);
 
-  // 🔥 LOG SUSPICIOUS ACTIVITY TO FIREBASE
-  const logSuspicious = async (action: string) => {
-    if (!user) return;
-
-    try {
-      await addDoc(collection(db, "security_logs"), {
-        user: user.email,
-        action,
-        time: new Date(),
-      });
-    } catch (e) {}
-  };
-
   if (loading) {
     return <p className="text-center mt-10 text-white">Loading...</p>;
   }
 
   return (
     <div className="relative bg-black min-h-screen">
-      {/* ✅ ADD HERE */}
-    {showWarning && (
-      <div className="fixed top-5 left-1/2 transform -translate-x-1/2 z-50 bg-red-600 text-white px-6 py-3 rounded-lg shadow-lg">
-        ⚠️ Screenshot detected! This activity is monitored.
-      </div>
-    )}
+      {/* ⚠️ WARNING POPUP */}
+      {showWarning && (
+        <div className="fixed top-5 left-1/2 transform -translate-x-1/2 z-50 bg-red-600 text-white px-6 py-3 rounded-lg shadow-lg">
+          ⚠️ Screenshot detected! Attempts: {attempts}/10
+        </div>
+      )}
 
       {/* HEADER */}
       <div className="p-3 text-center text-white bg-gray-900">
@@ -264,14 +222,14 @@ const [attempts, setAttempts] = useState(0);
         ))}
       </div>
 
-      {/* IMAGES */}
-     <div
-  className="flex flex-col items-center gap-6 p-4"
-  style={{
-    filter: blur ? "blur(12px)" : "none",
-    transition: "0.3s",
-  }}
->
+      {/* 📖 IMAGES */}
+      <div
+        className="flex flex-col items-center gap-6 p-4"
+        style={{
+          filter: blur ? "blur(12px)" : "none",
+          transition: "0.3s",
+        }}
+      >
         {pages.map((src, index) => (
           <img
             key={index}
@@ -281,6 +239,7 @@ const [attempts, setAttempts] = useState(0);
             draggable={false}
             onContextMenu={(e) => e.preventDefault()}
             onDragStart={(e) => e.preventDefault()}
+            onError={() => console.log("Image failed:", src)}
             style={{ userSelect: "none" }}
             className="max-w-3xl w-full rounded-lg shadow-lg"
           />
