@@ -1,3 +1,6 @@
+import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "../firebase";
 import React, { useState, useEffect, useRef } from "react";
 import { Star, Users, ShieldCheck, Zap, Globe, Layout, ArrowRight, Quote } from "lucide-react";
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -17,6 +20,7 @@ export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
+  const [hasPurchased, setHasPurchased] = useState(false);
 
   const suggestions = AI_TOOLS_LIST.filter(tool =>
     tool.toLowerCase().includes(searchQuery.toLowerCase())
@@ -57,6 +61,28 @@ useEffect(() => {
 
   return () => clearInterval(interval);
 }, []);
+  // ✅ ADD HERE (exact place)
+useEffect(() => {
+  const auth = getAuth();
+
+  const unsub = onAuthStateChanged(auth, async (u) => {
+    if (!u) return;
+
+    const userRef = doc(db, "users", u.uid);
+    const snap = await getDoc(userRef);
+
+    if (snap.exists()) {
+      const data = snap.data();
+
+      if (data.hasPurchased) {
+        setHasPurchased(true);
+      }
+    }
+  });
+
+  return () => unsub();
+}, []);
+  
   const handlePurchase = (e: React.MouseEvent) => {
     e.preventDefault();
     startPayment(user?.uid);
