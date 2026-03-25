@@ -14,7 +14,6 @@ import { getStorage, ref, getDownloadURL } from "firebase/storage";
 export default function BookViewer() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [pages, setPages] = useState<string[]>([]);
   const [blur, setBlur] = useState(false);
   const [showWarning, setShowWarning] = useState(false);
   const [attempts, setAttempts] = useState(0);
@@ -86,29 +85,7 @@ export default function BookViewer() {
     run();
   }, [user]);
 
-  // 🔥 LOAD IMAGES (FAST + SAFE)
-  useEffect(() => {
-    const loadImages = async () => {
-      const storage = getStorage();
-
-      try {
-        const urls = await Promise.all(
-          Array.from({ length: 108 }, async (_, i) => {
-            const num = String(i + 1).padStart(3, "0");
-            const imageRef = ref(storage, `ebooks/${num}.jpg`);
-            return await getDownloadURL(imageRef);
-          })
-        );
-
-        setPages(urls);
-      } catch (err) {
-        console.log("Image loading error:", err);
-      }
-    };
-
-    if (user) loadImages();
-  }, [user]);
-
+  
   // 🚫 BASIC PROTECTION
   useEffect(() => {
     const disableRightClick = (e: any) => e.preventDefault();
@@ -194,6 +171,12 @@ export default function BookViewer() {
   if (loading) {
     return <p className="text-center mt-10 text-white">Loading...</p>;
   }
+  // ✅ ADD HERE (exact location)
+const pages = Array.from({ length: 108 }, (_, i) => {
+  const num = String(i + 1).padStart(3, "0");
+
+  return `https://firebasestorage.googleapis.com/v0/b/top-50-ai-tools.appspot.com/o/ebooks%2F${num}.jpg?alt=media`;
+});
 
   return (
     <div className="relative bg-black min-h-screen">
@@ -226,7 +209,7 @@ export default function BookViewer() {
       <div
         className="flex flex-col items-center gap-6 p-4"
         style={{
-          filter: blur ? "blur(12px)" : "none",
+          filter: "none",
           transition: "0.3s",
         }}
       >
