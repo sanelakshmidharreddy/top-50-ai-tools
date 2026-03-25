@@ -4,12 +4,28 @@ import { doc, getDoc, updateDoc, addDoc, collection } from "firebase/firestore";
 import { db } from "../firebase";
 import { getDeviceId } from "../utils/device";
 import { getStorage, ref, getDownloadURL } from "firebase/storage";
+import { collection, addDoc } from "firebase/firestore";
 
 export default function BookViewer() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [pages, setPages] = useState<string[]>([]);
+  const [blur, setBlur] = useState(false);
+const [showWarning, setShowWarning] = useState(false);
+const [attempts, setAttempts] = useState(0);
 
+  // ✅ ADD HERE (exact location)
+  const logSecurityEvent = async (action: string) => {
+    try {
+      await addDoc(collection(db, "security_logs"), {
+        user: user?.email || "unknown",
+        action,
+        time: new Date().toISOString(),
+      });
+    } catch (e) {
+      console.log("Log error", e);
+    }
+  };
   // 🔐 AUTH CHECK
   useEffect(() => {
     const auth = getAuth();
@@ -108,40 +124,91 @@ export default function BookViewer() {
     };
   }, []);
 
-  // 🔥 SCREENSHOT / DEVTOOLS DETECTION (SIMULATION)
   useEffect(() => {
-    let blurTimeout: any;
+  let timeout: any;
 
-    const applyBlur = () => {
-      document.body.style.filter = "blur(20px)";
+  const triggerBlur = () => {
+    setBlur(true);
 
-      clearTimeout(blurTimeout);
-      blurTimeout = setTimeout(() => {
-        document.body.style.filter = "none";
-      }, 1000);
+    // 🔥 optional: log event
+    console.log("Screen capture suspected");
 
-      logSuspicious("Screen capture suspected");
-    };
+    clearTimeout(timeout);
+    timeout = setTimeout(() => {
+      setBlur(false);
+    }, 2000); // blur for 2 sec
+  };
 
-    const handleVisibility = () => {
-      if (document.hidden) applyBlur();
-    };
+  const handleVisibility = () => {
+    if (document.hidden) {
+      triggerBlur();
+    }
+  };
 
-    const detectDevTools = () => {
-      const widthDiff = window.outerWidth - window.innerWidth > 150;
-      const heightDiff = window.outerHeight - window.innerHeight > 150;
+  const handleKey = (e: any) => {
+    if (e.key === "PrintScreen") {
+      triggerBlur();
+    }
+  };
 
-      if (widthDiff || heightDiff) applyBlur();
-    };
+  document.addEventListener("visibilitychange", handleVisibility);
+  document.addEventListener("keydown", handleKey);
 
-    document.addEventListener("visibilitychange", handleVisibility);
-    window.addEventListener("resize", detectDevTools);
+  return () => {
+    document.removeEventListener("visibilitychange", handleVisibility);
+    document.removeEventListener("keydown", handleKey);
+  };
+}, []);
+  
 
-    return () => {
-      document.removeEventListener("visibilitychange", handleVisibility);
-      window.removeEventListener("resize", detectDevTools);
-    };
-  }, []);
+  // 🔥 SCREENSHOT / DEVTOOLS DETECTION (SIMULATION)
+ useEffect(() => {
+  let timeout: any;
+
+  const triggerSecurity = () => {
+    setBlur(true);
+    setShowWarning(true);
+
+    setAttempts((prev) => {
+      const newCount = prev + 1;
+
+      logSecurityEvent(`Screenshot attempt ${newCount}`);
+
+      if (newCount >= 10) {
+        alert("🚫 Access blocked due to multiple screenshots");
+        window.location.href = "/blocked";
+      }
+
+      return newCount;
+    });
+
+    clearTimeout(timeout);
+    timeout = setTimeout(() => {
+      setBlur(false);
+      setShowWarning(false);
+    }, 2000);
+  };
+
+  const handleVisibility = () => {
+    if (document.hidden) {
+      triggerSecurity();
+    }
+  };
+
+  const handleKey = (e: any) => {
+    if (e.key === "PrintScreen") {
+      triggerSecurity();
+    }
+  };
+
+  document.addEventListener("visibilitychange", handleVisibility);
+  document.addEventListener("keydown", handleKey);
+
+  return () => {
+    document.removeEventListener("visibilitychange", handleVisibility);
+    document.removeEventListener("keydown", handleKey);
+  };
+}, []);
 
   // ⏳ SESSION LIMIT
   useEffect(() => {
@@ -172,6 +239,12 @@ export default function BookViewer() {
 
   return (
     <div className="relative bg-black min-h-screen">
+      {/* ✅ ADD HERE */}
+    {showWarning && (
+      <div className="fixed top-5 left-1/2 transform -translate-x-1/2 z-50 bg-red-600 text-white px-6 py-3 rounded-lg shadow-lg">
+        ⚠️ Screenshot detected! This activity is monitored.
+      </div>
+    )}
 
       {/* HEADER */}
       <div className="p-3 text-center text-white bg-gray-900">
@@ -192,7 +265,13 @@ export default function BookViewer() {
       </div>
 
       {/* IMAGES */}
-      <div className="flex flex-col items-center gap-6 p-4">
+     <div
+  className="flex flex-col items-center gap-6 p-4"
+  style={{
+    filter: blur ? "blur(12px)" : "none",
+    transition: "0.3s",
+  }}
+>
         {pages.map((src, index) => (
           <img
             key={index}
