@@ -175,9 +175,8 @@ export default function BookViewer() {
 const pages = Array.from({ length: 108 }, (_, i) => {
   const num = String(i + 1).padStart(3, "0");
 
-  return `https://firebasestorage.googleapis.com/v0/b/top-50-ai-tools.appspot.com/o/ebooks%2F${num}.jpg?alt=media`;
+  return `https://firebasestorage.googleapis.com/v0/b/top-50-ai-tools.firebasestorage.app/o/ebooks%2F${num}.jpg?alt=media`;
 });
-
   return (
     <div className="relative bg-black min-h-screen">
       {/* ⚠️ WARNING POPUP */}
