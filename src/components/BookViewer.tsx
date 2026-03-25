@@ -114,49 +114,50 @@ export default function BookViewer() {
   }, []);
 
   // 🔥 SCREENSHOT DETECTION + LIMIT
-  useEffect(() => {
-    let timeout: any;
+ // 🔥 SCREENSHOT DETECTION + LIMIT
+useEffect(() => {
+  let timeout: any;
 
-    const triggerSecurity = () => {
-      setBlur(true);
-      setShowWarning(true);
+  const triggerSecurity = () => {
+    setBlur(true);
+    setShowWarning(true);
 
-      setAttempts((prev) => {
-        const newCount = prev + 1;
+    setAttempts((prev) => {
+      const newCount = prev + 1;
 
-        logSecurityEvent(`Screenshot attempt ${newCount}`);
+      logSecurityEvent(`Screenshot attempt ${newCount}`);
 
-        if (newCount >= 10) {
-          alert("🚫 Access blocked due to multiple screenshots");
-          window.location.href = "/blocked";
-        }
+      if (newCount >= 10) {
+        alert("🚫 Access blocked due to multiple screenshots");
+        window.location.href = "/blocked";
+      }
 
-        return newCount;
-      });
+      return newCount;
+    });
 
-      clearTimeout(timeout);
-      timeout = setTimeout(() => {
-        setBlur(false);
-        setShowWarning(false);
-      }, 2000);
-    };
+    clearTimeout(timeout);
+    timeout = setTimeout(() => {
+      setBlur(false);
+      setShowWarning(false);
+    }, 2000);
+  };
 
-    const handleVisibility = () => {
-      if (document.hidden) triggerSecurity();
-    };
+  const handleVisibility = () => {
+    if (document.hidden) triggerSecurity();
+  };
 
-    const handleKey = (e: any) => {
-      if (e.key === "PrintScreen") triggerSecurity();
-    };
+  const handleKey = (e: any) => {
+    if (e.key === "PrintScreen") triggerSecurity();
+  };
 
-    document.addEventListener("visibilitychange", handleVisibility);
-    document.addEventListener("keydown", handleKey);
+  document.addEventListener("visibilitychange", handleVisibility);
+  document.addEventListener("keydown", handleKey);
 
-    return () => {
-      document.removeEventListener("visibilitychange", handleVisibility);
-      document.removeEventListener("keydown", handleKey);
-    };
-  }, []);
+  return () => {
+    document.removeEventListener("visibilitychange", handleVisibility);
+    document.removeEventListener("keydown", handleKey);
+  };
+}, []);
 
   // ⏳ SESSION LIMIT
   useEffect(() => {
