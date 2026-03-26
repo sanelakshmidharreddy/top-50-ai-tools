@@ -74,6 +74,7 @@ useEffect(() => {
 
     if (snap.exists()) {
       const data = snap.data();
+      console.log("User purchase:", data.hasPurchased); // ✅ ADD HERE
 
       if (data.hasPurchased) {
         setHasPurchased(true);
