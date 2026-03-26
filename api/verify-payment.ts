@@ -20,7 +20,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       razorpay_order_id,
       razorpay_payment_id,
       razorpay_signature,
-      userId,
+      uid,
     } = req.body;
 
     const body = razorpay_order_id + "|" + razorpay_payment_id;
@@ -35,7 +35,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     // ✅ Save purchase
-    await db.collection("users").doc(userId).set(
+    await db.collection("users").doc(uid).set(
       {
         hasPurchased: true,
       },
