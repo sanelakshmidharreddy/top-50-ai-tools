@@ -85,7 +85,6 @@ useEffect(() => {
   return () => unsub();
 }, []);
 
-
 const handlePurchase = async (e: React.MouseEvent) => {
   e.preventDefault();
 
@@ -93,16 +92,17 @@ const handlePurchase = async (e: React.MouseEvent) => {
 
   let currentUser = user;
 
-  // 🔐 If NOT logged in → login first
+  // ❗ STEP 1: If NOT logged in → show alert
   if (!currentUser) {
+    alert("⚠️ Please login first to continue");
+
     const provider = new GoogleAuthProvider();
     const result = await signInWithPopup(auth, provider);
 
     if (!result.user) return;
 
-    currentUser = result.user; // ✅ FIX
+    currentUser = result.user;
   }
-
   // ✅ Always pass correct UID
   startPayment(currentUser.uid);
 };
