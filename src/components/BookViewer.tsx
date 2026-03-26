@@ -32,16 +32,30 @@ export default function BookViewer() {
   };
 
   // 🔐 AUTH CHECK
-  useEffect(() => {
-    const auth = getAuth();
-    const unsub = onAuthStateChanged(auth, (u) => {
-      if (!u) {
-        alert("Login required");
-        window.location.href = "/";
-      } else {
-        setUser(u);
-      }
-    });
+ useEffect(() => {
+  const auth = getAuth();
+
+  const unsub = onAuthStateChanged(auth, async (u) => {
+    if (!u) {
+      alert("Login required");
+      window.location.href = "/";
+      return;
+    }
+
+    const userRef = doc(db, "users", u.uid);
+    const snap = await getDoc(userRef);
+
+    if (!snap.exists() || !snap.data()?.hasPurchased) {
+      alert("Please purchase first");
+      window.location.href = "/";
+      return;
+    }
+
+    setUser(u); // ✅ keep this
+  });
+
+  return () => unsub();
+}, []);
     return () => unsub();
   }, []);
 
