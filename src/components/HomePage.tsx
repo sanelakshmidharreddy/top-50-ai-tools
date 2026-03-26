@@ -84,6 +84,12 @@ useEffect(() => {
 
   return () => unsub();
 }, []);
+  // ✅ ADD THIS (auto redirect)
+useEffect(() => {
+  if (hasPurchased) {
+    window.location.href = "/viewer";
+  }
+}, [hasPurchased]);
 
 const handlePurchase = async (e: React.MouseEvent) => {
   e.preventDefault();
