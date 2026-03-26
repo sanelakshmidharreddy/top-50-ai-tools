@@ -185,8 +185,14 @@ const handlePurchase = async (e: React.MouseEvent) => {
   </button>
 ) : (
   <div className="flex flex-col items-center">
-    <button
-      onClick={handlePurchase}
+  <button
+  onClick={() => {
+    if (hasPurchased) {
+      window.location.href = "/viewer"; // ✅ direct open
+    } else {
+      handlePurchase(new Event("click") as any);
+    }
+  }}
       className="w-full sm:w-auto bg-brand-accent text-white px-8 py-5 rounded-2xl font-bold"
     >
       Buy Now for ₹29
