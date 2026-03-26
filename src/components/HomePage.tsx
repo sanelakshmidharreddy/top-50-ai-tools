@@ -90,18 +90,21 @@ const handlePurchase = async (e: React.MouseEvent) => {
 
   const auth = getAuth();
 
+  let currentUser = user;
+
   // 🔐 If NOT logged in → login first
-  if (!user) {
+  if (!currentUser) {
     const provider = new GoogleAuthProvider();
     const result = await signInWithPopup(auth, provider);
 
     if (!result.user) return;
+
+    currentUser = result.user; // ✅ FIX
   }
 
-  // ✅ After login → payment
-  startPayment(user?.uid);
+  // ✅ Always pass correct UID
+  startPayment(currentUser.uid);
 };
-
   const allTools = [
     { icon: Globe, title: "Top 50 AI Tools", desc: "Detailed breakdown of the best tools." },
     { icon: Layout, title: "Build Websites", desc: "Create sites in minutes with AI." },
@@ -172,28 +175,26 @@ const handlePurchase = async (e: React.MouseEvent) => {
               </p>
               
               <div className="flex flex-col items-center lg:items-start space-y-8">
-        {hasPurchased ? (
+  {hasPurchased ? (
   <button
-    onClick={() => (window.location.href = "/book")}
-    className="w-full sm:w-auto bg-green-600 text-white px-8 sm:px-12 py-5 rounded-2xl text-lg font-bold"
+    onClick={() => (window.location.href = "/viewer")}
+    className="w-full sm:w-auto bg-green-600 text-white px-8 py-5 rounded-2xl font-bold"
   >
     📖 Read Book
   </button>
 ) : (
-  <button
-    onClick={handlePurchase}
-    className="w-full sm:w-auto bg-brand-accent text-white px-8 sm:px-12 py-5 rounded-2xl text-lg font-black shadow-xl flex flex-col items-start"
-  >
-    <span className="text-xs opacity-70 line-through">₹149</span>
-    <span>Buy Now for ₹29</span>
-    {/* 🔥 ADD HERE */}
-  <span className="text-[10px] text-yellow-300 font-bold">
-    🔥 80% OFF
-  </span>
-  </button>
-              <p className="text-xs text-yellow-400 font-bold mt-2">
-  🔥 Limited Time Offer – 80% OFF
-</p>
+  <div className="flex flex-col items-center">
+    <button
+      onClick={handlePurchase}
+      className="w-full sm:w-auto bg-brand-accent text-white px-8 py-5 rounded-2xl font-bold"
+    >
+      Buy Now for ₹29
+    </button>
+
+    <p className="text-xs text-yellow-400 font-bold mt-2">
+      🔥 Limited Time Offer – 80% OFF
+    </p>
+  </div>
 )}
                 
                 <div className="flex flex-col items-center lg:items-start">
@@ -444,23 +445,26 @@ const handlePurchase = async (e: React.MouseEvent) => {
 
       {/* Sticky Bottom Button for Mobile */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 z-[100] p-4 bg-brand-bg border-t border-white/10 shadow-lg">
-   {hasPurchased ? (
+  {hasPurchased ? (
   <button
-    onClick={() => (window.location.href = "/book")}
-    className="flex w-full items-center justify-between bg-green-600 text-white px-4 py-4"
+    onClick={() => (window.location.href = "/viewer")}
+    className="w-full sm:w-auto bg-green-600 text-white px-8 py-5 rounded-2xl font-bold"
   >
-    <span>📖 Read Book</span>
+    📖 Read Book
   </button>
 ) : (
-  <button
-    onClick={handlePurchase}
-    className="flex w-full items-center justify-between bg-brand-accent text-white px-4 py-4"
-  >
-    <div className="flex flex-col">
-      <span className="text-xs line-through opacity-70">₹149</span>
-      <span>Buy Now for ₹29</span>
-    </div>
-  </button>
+  <div className="flex flex-col items-center">
+    <button
+      onClick={handlePurchase}
+      className="w-full sm:w-auto bg-brand-accent text-white px-8 py-5 rounded-2xl font-bold"
+    >
+      Buy Now for ₹29
+    </button>
+
+    <p className="text-xs text-yellow-400 font-bold mt-2">
+      🔥 Limited Time Offer – 80% OFF
+    </p>
+  </div>
 )}
       </div>
 
