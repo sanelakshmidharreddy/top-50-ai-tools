@@ -1,4 +1,4 @@
-import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../firebase";
 import React, { useState, useEffect, useRef } from "react";
@@ -16,7 +16,8 @@ import "swiper/css/pagination";
 
 export default function HomePage() {
   const { user } = useAuth();
-  const [buyerCount, setBuyerCount] = useState(3500);
+  const [buyerCount, setBuyerCount] 
+    = useState(3500);
   const [searchQuery, setSearchQuery] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
@@ -82,11 +83,24 @@ useEffect(() => {
 
   return () => unsub();
 }, []);
-  
-  const handlePurchase = (e: React.MouseEvent) => {
-    e.preventDefault();
-    startPayment(user?.uid);
-  };
+
+
+const handlePurchase = async (e: React.MouseEvent) => {
+  e.preventDefault();
+
+  const auth = getAuth();
+
+  // 🔐 If NOT logged in → login first
+  if (!user) {
+    const provider = new GoogleAuthProvider();
+    const result = await signInWithPopup(auth, provider);
+
+    if (!result.user) return;
+  }
+
+  // ✅ After login → payment
+  startPayment(user?.uid);
+};
 
   const allTools = [
     { icon: Globe, title: "Top 50 AI Tools", desc: "Detailed breakdown of the best tools." },
@@ -138,7 +152,7 @@ useEffect(() => {
               >
                 <p className="text-[10px] font-bold uppercase text-gray-400 line-through">₹149</p>
                 <p className="text-lg sm:text-xl font-black leading-none">₹29</p>
-                <p className="text-[10px] font-bold text-emerald-600">80% OFF</p>
+            <p className="text-[10px] font-bold text-emerald-600">🔥 80% OFF</p>
               </div>
             </div>
 
@@ -158,20 +172,29 @@ useEffect(() => {
               </p>
               
               <div className="flex flex-col items-center lg:items-start space-y-8">
-                <button
-                  onClick={handlePurchase}
-                  className="w-full sm:w-auto bg-brand-accent text-white px-8 sm:px-12 py-5 rounded-2xl text-lg sm:text-xl font-black shadow-xl flex items-center justify-center space-x-4 group cursor-pointer"
-                >
-                  <div className="flex flex-col items-start leading-tight">
-                    <span className="text-xs opacity-70 line-through">₹149</span>
-                    <span>Buy Now for ₹29</span>
-                  </div>
-                  <span
-                    className="text-2xl"
-                  >
-                    →
-                  </span>
-                </button>
+        {hasPurchased ? (
+  <button
+    onClick={() => (window.location.href = "/book")}
+    className="w-full sm:w-auto bg-green-600 text-white px-8 sm:px-12 py-5 rounded-2xl text-lg font-bold"
+  >
+    📖 Read Book
+  </button>
+) : (
+  <button
+    onClick={handlePurchase}
+    className="w-full sm:w-auto bg-brand-accent text-white px-8 sm:px-12 py-5 rounded-2xl text-lg font-black shadow-xl flex flex-col items-start"
+  >
+    <span className="text-xs opacity-70 line-through">₹149</span>
+    <span>Buy Now for ₹29</span>
+    {/* 🔥 ADD HERE */}
+  <span className="text-[10px] text-yellow-300 font-bold">
+    🔥 80% OFF
+  </span>
+  </button>
+              <p className="text-xs text-yellow-400 font-bold mt-2">
+  🔥 Limited Time Offer – 80% OFF
+</p>
+)}
                 
                 <div className="flex flex-col items-center lg:items-start">
                   <div className="flex items-center space-x-4">
@@ -400,6 +423,8 @@ useEffect(() => {
                 Unlock Now for ₹29
               </button>
               
+
+            
               <div className="flex flex-col items-center justify-center space-y-6 text-sm sm:text-base text-gray-400">
                 <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-10">
                   <div className="flex items-center space-x-2">
@@ -419,16 +444,24 @@ useEffect(() => {
 
       {/* Sticky Bottom Button for Mobile */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 z-[100] p-4 bg-brand-bg border-t border-white/10 shadow-lg">
-        <button
-          onClick={handlePurchase}
-          className="flex w-full items-center justify-between bg-brand-accent text-white px-8 py-5 rounded-2xl shadow-lg font-black text-xl cursor-pointer active:scale-95 transition-transform"
-        >
-          <div className="flex flex-col items-start leading-tight">
-            <span className="text-xs opacity-70 line-through">₹149</span>
-            <span>Buy Now for ₹29</span>
-          </div>
-          <Zap className="w-7 h-7 fill-current" />
-        </button>
+   {hasPurchased ? (
+  <button
+    onClick={() => (window.location.href = "/book")}
+    className="flex w-full items-center justify-between bg-green-600 text-white px-4 py-4"
+  >
+    <span>📖 Read Book</span>
+  </button>
+) : (
+  <button
+    onClick={handlePurchase}
+    className="flex w-full items-center justify-between bg-brand-accent text-white px-4 py-4"
+  >
+    <div className="flex flex-col">
+      <span className="text-xs line-through opacity-70">₹149</span>
+      <span>Buy Now for ₹29</span>
+    </div>
+  </button>
+)}
       </div>
 
       <footer className="py-12 border-t border-white/5 text-center text-gray-500 text-sm">
