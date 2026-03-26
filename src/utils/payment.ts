@@ -1,4 +1,5 @@
-import { auth } from "../firebase";
+import { auth, db } from "../firebase";
+import { doc, updateDoc } from "firebase/firestore";
 
 declare global {
   interface Window {
@@ -42,8 +43,20 @@ export const startPayment = async (uid?: string) => {
           const verifyData = await verifyRes.json();
 
           if (verifyData.success) {
+
+            // ✅ STEP 1: UPDATE FIRESTORE (VERY IMPORTANT)
+            if (uid) {
+              await updateDoc(doc(db, "users", uid), {
+                hasPurchased: true,
+              });
+            }
+
+            // ✅ STEP 2: SUCCESS MESSAGE
             alert("✅ Payment successful!");
-            window.location.href = "/viewer";
+
+            // ✅ STEP 3: REDIRECT
+            window.location.href = "/book"; // (or /viewer if that's your route)
+
           } else {
             alert("Payment verification failed");
           }
