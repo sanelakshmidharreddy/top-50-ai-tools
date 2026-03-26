@@ -27,6 +27,7 @@ export const startPayment = async (uid?: string) => {
       // 🔥 FINAL HANDLER
       handler: async function (response: any) {
         try {
+          console.log("Sending UID:", uid); // ✅ ADD HERE
           const verifyRes = await fetch("/api/verify-payment", {
             method: "POST",
             headers: {
