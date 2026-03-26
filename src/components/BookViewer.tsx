@@ -56,8 +56,6 @@ export default function BookViewer() {
 
   return () => unsub();
 }, []);
-    return () => unsub();
-  }, []);
 
   // 🔥 PURCHASE + DEVICE LIMIT
   useEffect(() => {
