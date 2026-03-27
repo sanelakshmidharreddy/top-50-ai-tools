@@ -120,7 +120,7 @@ const handlePurchase = async (e: React.MouseEvent) => {
   ];
 
   const reviews = [
-    { name: "Rahul S.", text: "Best investment of ₹29! Saved me hours of research." },
+    { name: "Rahul S.", text: "Best investment of ₹149! Saved me hours of research." },
     { name: "Priya M.", text: "The prompt engineering section is absolute gold for students." },
     { name: "Ankit V.", text: "Exactly what I needed to stay updated with AI trends." },
     { name: "Sneha K.", text: "Launched my portfolio in one day thanks to the builder guide!" },
@@ -160,9 +160,7 @@ const handlePurchase = async (e: React.MouseEvent) => {
               <div
                 className="absolute -top-2 -right-1 sm:-top-4 sm:-right-2 bg-white text-brand-bg px-3 py-2 rounded-xl shadow-lg flex flex-col items-center z-30"
               >
-                <p className="text-[10px] font-bold uppercase text-gray-400 line-through">₹149</p>
-                <p className="text-lg sm:text-xl font-black leading-none">₹29</p>
-            <p className="text-[10px] font-bold text-emerald-600">🔥 80% OFF</p>
+             <p className="text-lg sm:text-xl font-black leading-none">₹149</p>
               </div>
             </div>
 
@@ -192,21 +190,12 @@ const handlePurchase = async (e: React.MouseEvent) => {
 ) : (
   <div className="flex flex-col items-center">
   <button
-  onClick={() => {
-    if (hasPurchased) {
-      window.location.href = "/viewer"; // ✅ direct open
-    } else {
-      handlePurchase(new Event("click") as any);
-    }
-  }}
+  onClick={handlePurchase}
       className="w-full sm:w-auto bg-brand-accent text-white px-8 py-5 rounded-2xl font-bold"
     >
-      Buy Now for ₹29
+      Buy Now for ₹149
     </button>
 
-    <p className="text-xs text-yellow-400 font-bold mt-2">
-      🔥 Limited Time Offer – 80% OFF
-    </p>
   </div>
 )}
                 
@@ -422,8 +411,7 @@ const handlePurchase = async (e: React.MouseEvent) => {
               <p className="text-gray-400 mb-10 text-base sm:text-lg">Join {buyerCount.toLocaleString()}+ others mastering AI today.</p>
               
               <div className="flex items-center justify-center space-x-6 mb-10">
-                <span className="text-3xl sm:text-4xl text-gray-500 line-through font-bold">₹149</span>
-                <span className="text-6xl sm:text-8xl font-black text-white">₹29</span>
+                <span className="text-6xl sm:text-8xl font-black text-white">₹149</span>
               </div>
               
               <div className="inline-block bg-orange-500/10 text-orange-500 px-6 py-3 rounded-full text-sm sm:text-base font-black mb-12 animate-pulse uppercase tracking-widest border border-orange-500/20">
@@ -471,12 +459,9 @@ const handlePurchase = async (e: React.MouseEvent) => {
       onClick={handlePurchase}
       className="w-full sm:w-auto bg-brand-accent text-white px-8 py-5 rounded-2xl font-bold"
     >
-      Buy Now for ₹29
+      Buy Now for ₹149
     </button>
 
-    <p className="text-xs text-yellow-400 font-bold mt-2">
-      🔥 Limited Time Offer – 80% OFF
-    </p>
   </div>
 )}
       </div>
