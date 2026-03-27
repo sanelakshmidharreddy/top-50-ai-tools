@@ -422,7 +422,7 @@ const handlePurchase = async (e: React.MouseEvent) => {
                 onClick={handlePurchase}
                 className="block w-full bg-brand-accent hover:bg-blue-600 text-white py-6 sm:py-7 rounded-[2rem] text-xl sm:text-2xl font-black transition-all shadow-xl shadow-blue-500/20 mb-8 cursor-pointer active:scale-[0.98]"
               >
-                Unlock Now for ₹29
+                Unlock Now for ₹149
               </button>
               
 
